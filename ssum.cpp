@@ -42,35 +42,56 @@ class ssum_instance {
         done = false;
     }
 
-    void count_elements_r(unsigned int tgt, unsigned int num, std::vector<int> &subsets) {
+    void alt_count(unsigned int tgt) {
+		// std::vector<double> dp;
+    	unsigned int dp[tgt + 1];
+		dp[0] = 1;
+    	// dp.at(0) = 1;
+    	unsigned int currentSum = 0;
+    	for (unsigned int i = 0; i < elems.size(); i++) {
+        	currentSum = elems.at(i).x;
+        	for (unsigned int j = std::min(tgt, currentSum); j >= elems.at(i).x; j--)
+            	// dp.at(j) += dp.at(j - elems.at(i).x);
+				dp[j] += dp[j - elems.at(i).x];
+    	}
+		// std::cout << dp.at(tgt);
+		std::cout << dp[tgt];
+    	// return dp.at(tgt);
+    }
 
+    unsigned int count_elements_r(unsigned int tgt, unsigned int num, unsigned int count) {
+		// std::cout << "Count:" << count << " ";
+		// std::cout << "Num:" << num << " ";
+		// std::cout << "Tgt:" << tgt << " " << "\n";
+
+		//Exhausted our input as well as target
 		if(num == 0 && tgt == 0) {
-			for(int i = 0; i < subsets.size(); i++) {
-          		std::cout << subsets.at(i) << " ";
-        	}
-			std::cout << "\n";
-			return;
+      		count = count + 1;
+      		// std::cout << count << " ";
+			return count;
 		}
 
+		//Exhausted the input but target remains,
 		if(tgt != 0 && num == 0 && feasible[0][tgt]) {
-			subsets.push_back(elems.at(num).x);
-			for(int i = 0; i < subsets.size(); i++) {
-          		std::cout << subsets.at(i) << " ";
-        	}
-			std::cout << "\n";
-			return;
+      		count = count + 1;
+      		// std::cout << count << " ";
+			return count;
 		}
 
 
 		if(feasible[num - 1][tgt]) {
-			std::vector<int> divergentSubset = subsets;
-			count_elements_r(tgt, num - 1, divergentSubset);
+			count = count_elements_r(tgt, num - 1, count);
+			std::cout << num << " ";
+			// return count;
 		}
 
 		if(feasible[num - 1][tgt - elems.at(num).x] && tgt >= elems.at(num).x) {
-			subsets.push_back(elems.at(num).x);
-			count_elements_r(tgt - elems.at(num).x, num - 1, subsets);
+			count = count_elements_r(tgt - elems.at(num).x, num - 1, count);
+			// std::cout << count << " ";
+			// return count;
 		}
+		// std::cout << count << " ";
+      	return count;
     }
 
     // Function:  solve
@@ -154,11 +175,12 @@ int main(int argc, char *argv[]) {
   ssi.read_elems(std::cin);
 
   if(ssi.solve(target) ) {
-	std::vector<int> subsets;
-    ssi.count_elements_r(target, ssi.elems.size(), subsets);
-    std::cout << "HOORAY!  Apparently, the target sum of " <<
-      target << " is achievable\n";
-    std::cout << "  How you ask?  Sorry, we just know it is possible...\n";
+	int test = ssi.count_elements_r(target, ssi.elems.size(), 0);
+  	std::cout << "\nHere: " << test;
+	// ssi.alt_count(target);
+    // std::cout << "HOORAY!  Apparently, the target sum of " <<
+    //   target << " is achievable\n";
+    // std::cout << "  How you ask?  Sorry, we just know it is possible...\n";
   }
   else {
     std::cout << "SORRY!  Apparently, the target sum of " <<
