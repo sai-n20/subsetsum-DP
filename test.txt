@@ -5,3 +5,8 @@
 11 MA
 16 MI
 5 MN
+55 CA
+9 CO
+7 CT
+3 DC
+3 DE

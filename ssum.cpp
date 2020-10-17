@@ -42,56 +42,87 @@ class ssum_instance {
         done = false;
     }
 
-    void alt_count(unsigned int tgt) {
-		// std::vector<double> dp;
-    	unsigned int dp[tgt + 1];
-		dp[0] = 1;
-    	// dp.at(0) = 1;
-    	unsigned int currentSum = 0;
-    	for (unsigned int i = 0; i < elems.size(); i++) {
-        	currentSum = elems.at(i).x;
-        	for (unsigned int j = std::min(tgt, currentSum); j >= elems.at(i).x; j--)
-            	// dp.at(j) += dp.at(j - elems.at(i).x);
-				dp[j] += dp[j - elems.at(i).x];
+    // void alt_count(unsigned int tgt) {
+	// 	// std::vector<double> dp;
+	// 	dp[0] = 1;
+    // 	// dp.at(0) = 1;
+    // 	unsigned int currentSum = 0;
+    // 	for (unsigned int i = 0; i < elems.size(); i++) {
+    //     	currentSum = elems.at(i).x;
+    //     	for (unsigned int j = std::min(tgt, currentSum); j >= elems.at(i).x; j--)
+    //         	// dp.at(j) += dp.at(j - elems.at(i).x);
+	// 			dp[j] += dp[j - elems.at(i).x];
+    // 	}
+	// 	// std::cout << dp.at(tgt);
+	// 	std::cout << dp[tgt];
+    // 	// return dp.at(tgt);
+    // }
+
+    void make_alt_table(unsigned int tgt) {
+		std::vector<std::vector<unsigned long long int>> alt;
+		alt = std::vector<std::vector<unsigned long long int>>(elems.size(), std::vector<unsigned long long int>(tgt+1, 0));
+		for(int i=0; i < elems.size(); i++){
+			alt[i][0] = 1;
+		}
+        for(int x=1; x <= tgt; x++) {
+            if(elems[0].x == x) 
+                alt[0][x] = 1;
+        }
+      for(int i=1; i < elems.size(); i++) {
+            for(int x = 1; x <= tgt; x++) {
+        
+        		unsigned long long int includingCurrentValue = 0;
+        		unsigned long long int excludingCurrentValue = 0;
+        
+        		if(elems.at(i).x <= x) {
+          			includingCurrentValue = alt[i - 1][x - elems.at(i).x];
+        		}
+        		excludingCurrentValue = alt[i - 1][x];
+        		alt[i][x] = includingCurrentValue + excludingCurrentValue;
+      		}
     	}
-		// std::cout << dp.at(tgt);
-		std::cout << dp[tgt];
-    	// return dp.at(tgt);
+		std::cout << "Here: " << alt[elems.size() - 1][tgt];
     }
 
-    unsigned int count_elements_r(unsigned int tgt, unsigned int num, unsigned int count) {
+    int count_elements_r(unsigned int tgt, unsigned int num, int count) {
 		// std::cout << "Count:" << count << " ";
 		// std::cout << "Num:" << num << " ";
 		// std::cout << "Tgt:" << tgt << " " << "\n";
 
+    //Exhausted the input but target remains,
+		if(tgt != 0 && num == 0 && feasible[0][tgt]) {
+      		count = count + 1;
+      		// std::cout << count << " ";
+			return count;
+		}
 		//Exhausted our input as well as target
 		if(num == 0 && tgt == 0) {
       		count = count + 1;
-      		std::cout << count << " ";
-			return count;
-		}
-
-		//Exhausted the input but target remains,
-		if(tgt != 0 && num == 0 && feasible[0][tgt]) {
-      		count = count + 1;
-      		std::cout << count << " ";
+      		// std::cout << count << " ";
 			return count;
 		}
 
 
-		if(feasible[num - 1][tgt]) {
+    if(num != 0) {
+      if(feasible[num - 1][tgt]) {
 			count = count_elements_r(tgt, num - 1, count);
 			// return count;
 			// std::cout << count << " ";
 			// return (count + count_elements_r(tgt, num - 1, count));
-		}
+      std::cout << "Count:" << count << " ";
+		std::cout << "Num:" << num << " ";
+		std::cout << "Tgt:" << tgt << " " << "\n";
+		  }
+    }
 
-		if(feasible[num - 1][tgt - elems.at(num).x] && tgt >= elems.at(num).x) {
+    if(num != 0) {
+      if(feasible[num - 1][tgt - elems.at(num).x] && tgt >= elems.at(num).x) {
 			count = count_elements_r(tgt - elems.at(num).x, num - 1, count);
 			// return count;
 			// std::cout << count << " ";
 			//  return (count + count_elements_r(tgt - elems.at(num).x, num - 1, count));
 		}
+    }
 
 		// std::cout << count << " ";
       	// return count;
@@ -178,18 +209,19 @@ int main(int argc, char *argv[]) {
   }
 
   ssi.read_elems(std::cin);
-
-  if(ssi.solve(target) ) {
-	int test = ssi.count_elements_r(target, ssi.elems.size(), 0);
-  	std::cout << "\nHere: " << test;
-	// ssi.alt_count(target);
-    // std::cout << "HOORAY!  Apparently, the target sum of " <<
-    //   target << " is achievable\n";
-    // std::cout << "  How you ask?  Sorry, we just know it is possible...\n";
-  }
-  else {
-    std::cout << "SORRY!  Apparently, the target sum of " <<
-      target << " is NOT achievable\n";
-  }
+	ssi.make_alt_table(target);
+//   if(ssi.solve(target) ) {
+//     int count1 = 0;
+// 	int test = ssi.count_elements_r(target, ssi.elems.size(), count1);
+//   	std::cout << "\nHere: " << test;
+// 	// ssi.alt_count(target);
+//     // std::cout << "HOORAY!  Apparently, the target sum of " <<
+//     //   target << " is achievable\n";
+//     // std::cout << "  How you ask?  Sorry, we just know it is possible...\n";
+//   }
+//   else {
+//     std::cout << "SORRY!  Apparently, the target sum of " <<
+//       target << " is NOT achievable\n";
+//   }
 
 }
