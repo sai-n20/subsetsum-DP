@@ -15,7 +15,6 @@ struct ssum_elem {
 
 class ssum_instance {
     unsigned int target=0;
-    std::vector<ssum_elem> elems;
     std::vector<std::vector<bool>> feasible;  
     // feasible[i][x] = TRUE if there is a subset
     //  of a[0..i] adding up to x; FALSE otherwise
@@ -25,6 +24,7 @@ class ssum_instance {
                        //   not on this instance
 
     public:
+    std::vector<ssum_elem> elems;
 
     // Function:  read_elems
     // Description:  reads elements from standard-input; 
@@ -40,6 +40,37 @@ class ssum_instance {
             elems.push_back(e);
         }
         done = false;
+    }
+
+    void count_elements_r(unsigned int tgt, unsigned int num, std::vector<int> &subsets) {
+
+		if(num == 0 && tgt == 0) {
+			for(int i = 0; i < subsets.size(); i++) {
+          		std::cout << subsets.at(i) << " ";
+        	}
+			std::cout << "\n";
+			return;
+		}
+
+		if(tgt != 0 && num == 0 && feasible[0][tgt]) {
+			subsets.push_back(elems.at(num).x);
+			for(int i = 0; i < subsets.size(); i++) {
+          		std::cout << subsets.at(i) << " ";
+        	}
+			std::cout << "\n";
+			return;
+		}
+
+
+		if(feasible[num - 1][tgt]) {
+			std::vector<int> divergentSubset = subsets;
+			count_elements_r(tgt, num - 1, divergentSubset);
+		}
+
+		if(feasible[num - 1][tgt - elems.at(num).x] && tgt >= elems.at(num).x) {
+			subsets.push_back(elems.at(num).x);
+			count_elements_r(tgt - elems.at(num).x, num - 1, subsets);
+		}
     }
 
     // Function:  solve
@@ -110,8 +141,7 @@ class ssum_instance {
 int main(int argc, char *argv[]) {
   unsigned int target;
   ssum_instance ssi;
-
-  if(argc != 2) {
+  if(argc != 3) {
     fprintf(stderr, "one cmd-line arg expected: target sum\n");
     return 0;
   }
@@ -124,6 +154,8 @@ int main(int argc, char *argv[]) {
   ssi.read_elems(std::cin);
 
   if(ssi.solve(target) ) {
+	std::vector<int> subsets;
+    ssi.count_elements_r(target, ssi.elems.size(), subsets);
     std::cout << "HOORAY!  Apparently, the target sum of " <<
       target << " is achievable\n";
     std::cout << "  How you ask?  Sorry, we just know it is possible...\n";
