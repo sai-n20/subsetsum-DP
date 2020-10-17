@@ -64,8 +64,8 @@ class ssum_instance {
 		for(int i=0; i < elems.size(); i++){
 			alt[i][0] = 1;
 		}
-        for(int x=1; x <= tgt; x++) {
-            if(elems[0].x == x) 
+        for(int x=0; x <= tgt; x++) {
+            if(elems.at(0).x == x) 
                 alt[0][x] = 1;
         }
       for(int i=1; i < elems.size(); i++) {
