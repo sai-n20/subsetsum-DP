@@ -67,31 +67,36 @@ class ssum_instance {
 		//Exhausted our input as well as target
 		if(num == 0 && tgt == 0) {
       		count = count + 1;
-      		// std::cout << count << " ";
+      		std::cout << count << " ";
 			return count;
 		}
 
 		//Exhausted the input but target remains,
 		if(tgt != 0 && num == 0 && feasible[0][tgt]) {
       		count = count + 1;
-      		// std::cout << count << " ";
+      		std::cout << count << " ";
 			return count;
 		}
 
 
 		if(feasible[num - 1][tgt]) {
 			count = count_elements_r(tgt, num - 1, count);
-			std::cout << num << " ";
 			// return count;
+			// std::cout << count << " ";
+			// return (count + count_elements_r(tgt, num - 1, count));
 		}
 
 		if(feasible[num - 1][tgt - elems.at(num).x] && tgt >= elems.at(num).x) {
 			count = count_elements_r(tgt - elems.at(num).x, num - 1, count);
-			// std::cout << count << " ";
 			// return count;
+			// std::cout << count << " ";
+			//  return (count + count_elements_r(tgt - elems.at(num).x, num - 1, count));
 		}
+
 		// std::cout << count << " ";
-      	return count;
+      	// return count;
+		// int digit = 7;
+		return count;
     }
 
     // Function:  solve
