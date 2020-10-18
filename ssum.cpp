@@ -40,16 +40,18 @@ public:
 		}
 		done = false;
 	}
+	std::vector<std::vector<unsigned long long int>> distinctSubsets;
 
-	void make_alt_table(unsigned int tgt) {
-		std::vector<std::vector<unsigned long long int>> alt;
-		alt = std::vector<std::vector<unsigned long long int>>(elems.size(), std::vector<unsigned long long int>(tgt + 1, 0));
+	unsigned long long int make_count_table(unsigned int tgt) {
+
+		distinctSubsets = std::vector<std::vector<unsigned long long int>>(elems.size(), std::vector<unsigned long long int>(tgt + 1, 0));
+
 		for (int i = 0; i < elems.size(); i++) {
-			alt[i][0] = 1;
+			distinctSubsets[i][0] = 1;
 		}
 		for (int x = 0; x <= tgt; x++) {
 			if (elems.at(0).x == x)
-				alt[0][x] = 1;
+				distinctSubsets[0][x] = 1;
 		}
 		for (int i = 1; i < elems.size(); i++) {
 			for (int x = 1; x <= tgt; x++) {
@@ -58,13 +60,103 @@ public:
 				unsigned long long int excludingCurrentValue = 0;
 
 				if (elems.at(i).x <= x) {
-					includingCurrentValue = alt[i - 1][x - elems.at(i).x];
+					includingCurrentValue = distinctSubsets[i - 1][x - elems.at(i).x];
 				}
-				excludingCurrentValue = alt[i - 1][x];
-				alt[i][x] = includingCurrentValue + excludingCurrentValue;
+				excludingCurrentValue = distinctSubsets[i - 1][x];
+				distinctSubsets[i][x] = includingCurrentValue + excludingCurrentValue;
 			}
 		}
-		std::cout << "Here: " << alt[elems.size() - 1][tgt];
+		return distinctSubsets[elems.size() - 1][tgt];
+	}
+
+	std::vector<std::vector<unsigned int>> minCount;
+
+	unsigned int smallest_size(unsigned int tgt, unsigned int num) {
+
+		minCount = std::vector<std::vector<unsigned int>>(num, std::vector<unsigned int>(tgt + 1, 0));
+
+		//To solve this trivially incase target matches input array amount
+		for (int i = 0; i < num; i++) {
+			if (elems.at(i).x == tgt) { return 1; }
+			minCount[i][0] = 0;
+		}
+
+
+		for (int i = 0; i < num; i++) {
+			for (int x = 1; x <= tgt; x++) {
+
+				unsigned int includingCurrentValue = 429496729;
+				unsigned int excludingCurrentValue = 429496729;
+
+				if (elems[i].x <= x) {
+					includingCurrentValue = 1 + minCount[i][x - elems[i].x];
+				}
+
+				if (i > 0) {
+					excludingCurrentValue = minCount[i - 1][x];
+				}
+
+				minCount[i][x] = std::min(includingCurrentValue, excludingCurrentValue);
+			}
+		}
+		return minCount[num - 1][tgt];
+	}
+
+	unsigned int make_smallest_count_table(unsigned int tgt, unsigned int smallest) {
+		std::vector<std::vector<unsigned int>> distinctSmallestSubsets;
+		distinctSmallestSubsets = std::vector<std::vector<unsigned int>>(elems.size(), std::vector<unsigned int>(tgt + 1, 0));
+		for (int i = 0; i < elems.size(); i++) {
+			distinctSmallestSubsets[i][0] = 1;
+		}
+		// for (int x = 0; x <= tgt; x++) {
+		// 	if (elems.at(0).x == x)
+		// 		distinctSmallestSubsets[0][x] = 1;
+		// }
+		for (int i = 0; i < elems.size(); i++) {
+			for (int x = 1; x <= tgt; x++) {
+				for (int p = 0; p < distinctSubsets[i][x]; p++) {
+					unsigned int includingCurrentValue = 429496729;
+					unsigned int excludingCurrentValue = 429496729;
+
+					if (elems[i].x <= x) {
+						includingCurrentValue = 1 + minCount[i][x - elems[i].x];
+					}
+
+					if (i > 0) {
+						excludingCurrentValue = minCount[i - 1][x];
+					}
+
+					minCount[i][x] = std::min(includingCurrentValue, excludingCurrentValue);
+				}
+
+				unsigned int includingCurrentValue = 429496729;
+				unsigned int excludingCurrentValue = 429496729;
+
+				if (elems[i].x <= x) {
+					includingCurrentValue = 1 + distinctSmallestSubsets[i][x - elems[i].x];
+				}
+
+				if (i > 0) {
+					excludingCurrentValue = distinctSmallestSubsets[i - 1][x];
+				}
+
+				distinctSmallestSubsets[i][x] = std::min(includingCurrentValue, excludingCurrentValue);
+				for (int p = 1; p < i; p++) {
+					for (int q = 1; q <= x; q++) {
+
+						unsigned long long int includingCurrentValue = 0;
+						unsigned long long int excludingCurrentValue = 0;
+
+						if (elems.at(i).x <= x) {
+							includingCurrentValue = distinctSubsets[i - 1][x - elems.at(i).x];
+						}
+						excludingCurrentValue = distinctSubsets[i - 1][x];
+						distinctSubsets[i][x] = includingCurrentValue + excludingCurrentValue;
+					}
+				}
+			}
+		}
+		return distinctSmallestSubsets[elems.size() - 1][tgt];
 	}
 
 	// Function:  solve
@@ -132,29 +224,31 @@ int main(int argc, char* argv[]) {
 	unsigned int test = 0;
 	unsigned int target;
 	ssum_instance ssi;
-	if (argc != 3) {
-		fprintf(stderr, "one cmd-line arg expected: target sum\n");
+	if (argc != 2) {
+		fprintf(stderr, "One cmd-line arg expected: target sum\n");
 		return 0;
 	}
 	if (sscanf(argv[1], "%u", &target) != 1) {
-		fprintf(stderr, "bad argument '%s'\n", argv[1]);
+		fprintf(stderr, "Bad argument '%s'\n", argv[1]);
 		fprintf(stderr, "   Expected unsigned integer\n");
 		return 0;
 	}
 
 	ssi.read_elems(std::cin);
-	ssi.make_alt_table(target);
-	//ssi.printAllSubsets(target);
-	// if (ssi.solve(target))
-	// {
-	// 	std::cout << "\nHere: " << ssi.count_elements_r(target, ssi.elems.size(), 0);
-	// 	// ssi.alt_count(target);
-	// 	// std::cout << "HOORAY!  Apparently, the target sum of " <<
-	// 	//   target << " is achievable\n";
-	// 	// std::cout << "  How you ask?  Sorry, we just know it is possible...\n";
-	// }
-	// else
-	// {
-	// 	std::cout << "SORRY!  Apparently, the target sum of " << target << " is NOT achievable\n";
-	// }
+	if (ssi.solve(target)) {
+		// std::cout << "The target sum of " << target << " is FEASIBLE!";
+		// std::cout << "\n\nNumber of distinct solutions: " << ssi.make_count_table(target);
+		unsigned int smallSize = ssi.smallest_size(target, ssi.elems.size());
+		std::cout << "\nSize of smallest subset: " << smallSize;
+		std::cout << "\nAmount of smallest subsets: " << ssi.make_smallest_count_table(target, smallSize);
+		// std::vector<int> subsets;
+		// ssi.printSubsetsRec(ssi.elems.size(), target, subsets, 9999);
+		// std::cout << "\nHere: " << ssi.printSubsetsRec(ssi.elems.size(), target, subsets, 9999);
+		// std::cout << "HOORAY!  Apparently, the target sum of " <<
+		//   target << " is achievable\n";
+		// std::cout << "  How you ask?  Sorry, we just know it is possible...\n";
+	}
+	else {
+		std::cout << "SORRY!  Apparently, the target sum of " << target << " is NOT achievable\n";
+	}
 }
