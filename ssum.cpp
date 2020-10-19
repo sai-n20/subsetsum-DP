@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+using namespace std;
 
 struct ssum_elem {
 	unsigned int x;
@@ -159,6 +160,94 @@ public:
 		return distinctSmallestSubsets[elems.size() - 1][tgt];
 	}
 
+	///////////////////////////////////////////////////
+	bool** dp;
+	void display(const vector<int>& v){ 
+		for (int i = 0; i < v.size(); ++i) 
+			printf("%d ", v[i]); 
+		printf("\n"); 
+    } 
+
+// A recursive function to print all subsets with the 
+// help of dp[][]. Vector p[] stores current subset. 
+void printSubsetsRec(int i, int sum, vector<int>& p, int min) 
+{ 
+	// If we reached end and sum is non-zero. We print 
+	// p[] only if arr[0] is equal to sun OR dp[0][sum] 
+	// is true. 
+	if(p.size() > min) {
+		 return; 
+	}
+
+	if (i == 0 && sum != 0 && dp[0][sum]) 
+	{ 
+		p.push_back(elems[i].x); 
+		display(p); 
+		return; 
+	} 
+
+	// If sum becomes 0 
+	if (i == 0 && sum == 0) 
+	{ 
+		display(p); 
+		return; 
+	} 
+
+	// If given sum can be achieved after ignoring 
+	// current element. 
+	if (dp[i-1][sum]) 
+	{ 
+		// Create a new vector to store path 
+		vector<int> b = p; 
+		printSubsetsRec( i-1, sum, b, min); 
+	} 
+
+	// If given sum can be achieved after considering 
+	// current element. 
+	if (sum >= elems[i].x && dp[i-1][sum-elems[i].x]) 
+	{ 
+		p.push_back(elems[i].x); 
+		printSubsetsRec( i-1, sum-elems[i].x, p, min); 
+	} 
+} 
+
+// Prints all subsets of arr[0..n-1] with sum 0. 
+void printAllSubsets(int n, int sum, int min) 
+{ 
+	if (n == 0 || sum < 0) 
+	return; 
+
+	// Sum 0 can always be achieved with 0 elements 
+	dp = new bool*[n]; 
+	for (int i=0; i<n; ++i) 
+	{ 
+		dp[i] = new bool[sum + 1]; 
+		dp[i][0] = true; 
+	} 
+
+	// Sum arr[0] can be achieved with single element 
+	if (elems[0].x <= sum) 
+	dp[0][elems[0].x] = true; 
+
+	// Fill rest of the entries in dp[][] 
+	for (int i = 1; i < n; ++i) 
+		for (int j = 0; j < sum + 1; ++j) 
+			dp[i][j] = (elems[i].x <= j) ? dp[i-1][j] || 
+									dp[i-1][j-elems[i].x] 
+									: dp[i - 1][j]; 
+	if (dp[n-1][sum] == false) 
+	{ 
+		printf("There are no subsets with sum %d\n", sum); 
+		return; 
+	} 
+
+	// Now recursively traverse dp[][] to find all 
+	// paths from dp[n-1][sum] 
+	vector<int> p; 
+	printSubsetsRec( n-1, sum, p, min); 
+} 
+	//////////////////////////////////////////////////
+
 	// Function:  solve
 	// Desc:  populates dynamic programming table of
 	//    calling object for specified target sum.
@@ -236,11 +325,14 @@ int main(int argc, char* argv[]) {
 
 	ssi.read_elems(std::cin);
 	if (ssi.solve(target)) {
-		// std::cout << "The target sum of " << target << " is FEASIBLE!";
-		// std::cout << "\n\nNumber of distinct solutions: " << ssi.make_count_table(target);
-		unsigned int smallSize = ssi.smallest_size(target, ssi.elems.size());
-		std::cout << "\nSize of smallest subset: " << smallSize;
-		std::cout << "\nAmount of smallest subsets: " << ssi.make_smallest_count_table(target, smallSize);
+		 std::cout << "The target sum of " << target << " is FEASIBLE!";
+		 std::cout << "\n\nNumber of distinct solutions: " << ssi.make_count_table(target);
+
+		 unsigned int smallSize = ssi.smallest_size(target, ssi.elems.size());
+		 std::cout << "\nSize of smallest subset: " << smallSize << "\n";
+		 ssi.printAllSubsets( ssi.elems.size(), target, smallSize); // prints all subsets
+
+		//std::cout << "\nAmount of smallest subsets: " << ssi.make_smallest_count_table(target, smallSize);
 		// std::vector<int> subsets;
 		// ssi.printSubsetsRec(ssi.elems.size(), target, subsets, 9999);
 		// std::cout << "\nHere: " << ssi.printSubsetsRec(ssi.elems.size(), target, subsets, 9999);
