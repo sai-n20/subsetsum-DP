@@ -42,19 +42,21 @@ public:
 		done = false;
 	}
 
-	unsigned long long int make_count_table(unsigned int tgt) {
+	unsigned long long int make_count_table(unsigned int tgt, unsigned int num) {
 
 		std::vector<std::vector<unsigned long long int>> distinctSubsets;
-		distinctSubsets = std::vector<std::vector<unsigned long long int>>(elems.size(), std::vector<unsigned long long int>(tgt + 1, 0));
+		distinctSubsets = std::vector<std::vector<unsigned long long int>>(num, std::vector<unsigned long long int>(tgt + 1, 0));
 
-		for (int i = 0; i < elems.size(); i++) {
+		//Sum of 0 is possible with empty set {}
+		for (int i = 0; i < num; i++) {
 			distinctSubsets[i][0] = 1;
 		}
+
 		for (int x = 0; x <= tgt; x++) {
 			if (elems.at(0).x == x)
 				distinctSubsets[0][x] = 1;
 		}
-		for (int i = 1; i < elems.size(); i++) {
+		for (int i = 1; i < num; i++) {
 			for (int x = 1; x <= tgt; x++) {
 
 				unsigned long long int includingCurrentValue = 0;
@@ -67,7 +69,7 @@ public:
 				distinctSubsets[i][x] = includingCurrentValue + excludingCurrentValue;
 			}
 		}
-		return distinctSubsets[elems.size() - 1][tgt];
+		return distinctSubsets[num - 1][tgt];
 	}
 
 
@@ -103,45 +105,11 @@ public:
 				minCount[i][x] = std::min(includingCurrentValue, excludingCurrentValue);
 			}
 		}
-		return minCount[num - 1][tgt+1];
+		return minCount[num - 1][tgt];
 	}
 
 	unsigned int distinctSmallestSubsetCounter = 0;
 
-	void printSubsetsRec(int tgt, int num, vector<int>& p, int min) {
-
-		if (p.size() > min) {
-			return;
-		}
-
-		if (num == 0 && tgt != 0 && feasible[0][tgt]) {
-			p.push_back(elems[num].x);
-			// distinctSmallestSubsetCounter++;
-			// std::cout << distinctSmallestSubsetCounter << " ";
-			return;
-		}
-
-		if (num == 0 && tgt == 0) {
-			distinctSmallestSubsetCounter++;
-			// std::cout << distinctSmallestSubsetCounter << " ";
-			return;
-		}
-
-		if (feasible[num - 1][tgt]) {
-			vector<int> b = p;
-			printSubsetsRec(tgt, num - 1, b, min);
-		}
-
-		if (tgt >= elems[num].x) {
-			if (feasible[num - 1][tgt - elems[num].x]) {
-				p.push_back(elems[num].x);
-				printSubsetsRec(tgt - elems[num].x, num - 1, p, min);
-			}
-		}
-		// else {
-			// printSubsetsRec(0, num - 1, p, min);
-		// }
-	}
 
 	// Function:  solve
 	// Desc:  populates dynamic programming table of
@@ -221,11 +189,9 @@ int main(int argc, char* argv[]) {
 	ssi.read_elems(std::cin);
 	if (ssi.solve(target)) {
 		std::cout << "The target sum of " << target << " is FEASIBLE!";
-		std::cout << "\n\nNumber of distinct solutions: " << ssi.make_count_table(target);
+		std::cout << "\n\nNumber of distinct solutions: " << ssi.make_count_table(target, ssi.elems.size());
 		unsigned int smallSize = ssi.smallest_size(target, ssi.elems.size());
-		std::cout << "\nSize of smallest subset: " << smallSize;
-		vector<int> p;
-		ssi.printSubsetsRec(target, ssi.elems.size(), p, smallSize);
+		std::cout << "\nSize of smallest subset: " << smallSize << "\n";
 		std::cout << "\nAmount of smallest subsets: " << ssi.distinctSmallestSubsetCounter;
 		// std::vector<int> subsets;
 		// ssi.printSubsetsRec(ssi.elems.size(), target, subsets, 9999);
