@@ -193,12 +193,6 @@ int main(int argc, char* argv[]) {
 		unsigned int smallSize = ssi.smallest_size(target, ssi.elems.size());
 		std::cout << "\nSize of smallest subset: " << smallSize << "\n";
 		std::cout << "\nAmount of smallest subsets: " << ssi.distinctSmallestSubsetCounter;
-		// std::vector<int> subsets;
-		// ssi.printSubsetsRec(ssi.elems.size(), target, subsets, 9999);
-		// std::cout << "\nHere: " << ssi.printSubsetsRec(ssi.elems.size(), target, subsets, 9999);
-		// std::cout << "HOORAY!  Apparently, the target sum of " <<
-		//   target << " is achievable\n";
-		// std::cout << "  How you ask?  Sorry, we just know it is possible...\n";
 	}
 	else {
 		std::cout << "SORRY!  Apparently, the target sum of " << target << " is NOT achievable\n";
