@@ -41,10 +41,10 @@ public:
 		}
 		done = false;
 	}
-	std::vector<std::vector<unsigned long long int>> distinctSubsets;
 
 	unsigned long long int make_count_table(unsigned int tgt) {
 
+		std::vector<std::vector<unsigned long long int>> distinctSubsets;
 		distinctSubsets = std::vector<std::vector<unsigned long long int>>(elems.size(), std::vector<unsigned long long int>(tgt + 1, 0));
 
 		for (int i = 0; i < elems.size(); i++) {
@@ -70,183 +70,78 @@ public:
 		return distinctSubsets[elems.size() - 1][tgt];
 	}
 
-	std::vector<std::vector<unsigned int>> minCount;
 
 	unsigned int smallest_size(unsigned int tgt, unsigned int num) {
 
-		minCount = std::vector<std::vector<unsigned int>>(num, std::vector<unsigned int>(tgt + 1, 0));
+		std::vector<std::vector<unsigned int>> minCount;
+		minCount = std::vector<std::vector<unsigned int>>(num, std::vector<unsigned int>(tgt + 1, 42949672));
 
 		//To solve this trivially incase target matches input array amount
 		for (int i = 0; i < num; i++) {
 			if (elems.at(i).x == tgt) { return 1; }
 			minCount[i][0] = 0;
 		}
+		for (int x = 1; x <= tgt; x++) {
+			if (elems[0].x == x)
+				minCount[0][x] = 1;
+		}
 
-
-		for (int i = 0; i < num; i++) {
+		for (int i = 1; i < num; i++) {
 			for (int x = 1; x <= tgt; x++) {
 
-				unsigned int includingCurrentValue = 429496729;
-				unsigned int excludingCurrentValue = 429496729;
-
-				if (elems[i].x <= x) {
-					includingCurrentValue = 1 + minCount[i][x - elems[i].x];
-				}
+				unsigned int includingCurrentValue = 42949672;
+				unsigned int excludingCurrentValue = 42949672;
 
 				if (i > 0) {
 					excludingCurrentValue = minCount[i - 1][x];
 				}
 
+				if (elems[i].x <= x) {
+					includingCurrentValue = 1 + minCount[i][x - elems[i].x];
+				}
+
 				minCount[i][x] = std::min(includingCurrentValue, excludingCurrentValue);
 			}
 		}
-		return minCount[num - 1][tgt];
+		return minCount[num - 1][tgt+1];
 	}
 
-	unsigned int make_smallest_count_table(unsigned int tgt, unsigned int smallest) {
-		std::vector<std::vector<unsigned int>> distinctSmallestSubsets;
-		distinctSmallestSubsets = std::vector<std::vector<unsigned int>>(elems.size(), std::vector<unsigned int>(tgt + 1, 0));
-		for (int i = 0; i < elems.size(); i++) {
-			distinctSmallestSubsets[i][0] = 1;
+	unsigned int distinctSmallestSubsetCounter = 0;
+
+	void printSubsetsRec(int tgt, int num, vector<int>& p, int min) {
+
+		if (p.size() > min) {
+			return;
 		}
-		// for (int x = 0; x <= tgt; x++) {
-		// 	if (elems.at(0).x == x)
-		// 		distinctSmallestSubsets[0][x] = 1;
-		// }
-		for (int i = 0; i < elems.size(); i++) {
-			for (int x = 1; x <= tgt; x++) {
-				for (int p = 0; p < distinctSubsets[i][x]; p++) {
-					unsigned int includingCurrentValue = 429496729;
-					unsigned int excludingCurrentValue = 429496729;
 
-					if (elems[i].x <= x) {
-						includingCurrentValue = 1 + minCount[i][x - elems[i].x];
-					}
+		if (num == 0 && tgt != 0 && feasible[0][tgt]) {
+			p.push_back(elems[num].x);
+			// distinctSmallestSubsetCounter++;
+			// std::cout << distinctSmallestSubsetCounter << " ";
+			return;
+		}
 
-					if (i > 0) {
-						excludingCurrentValue = minCount[i - 1][x];
-					}
+		if (num == 0 && tgt == 0) {
+			distinctSmallestSubsetCounter++;
+			// std::cout << distinctSmallestSubsetCounter << " ";
+			return;
+		}
 
-					minCount[i][x] = std::min(includingCurrentValue, excludingCurrentValue);
-				}
+		if (feasible[num - 1][tgt]) {
+			vector<int> b = p;
+			printSubsetsRec(tgt, num - 1, b, min);
+		}
 
-				unsigned int includingCurrentValue = 429496729;
-				unsigned int excludingCurrentValue = 429496729;
-
-				if (elems[i].x <= x) {
-					includingCurrentValue = 1 + distinctSmallestSubsets[i][x - elems[i].x];
-				}
-
-				if (i > 0) {
-					excludingCurrentValue = distinctSmallestSubsets[i - 1][x];
-				}
-
-				distinctSmallestSubsets[i][x] = std::min(includingCurrentValue, excludingCurrentValue);
-				for (int p = 1; p < i; p++) {
-					for (int q = 1; q <= x; q++) {
-
-						unsigned long long int includingCurrentValue = 0;
-						unsigned long long int excludingCurrentValue = 0;
-
-						if (elems.at(i).x <= x) {
-							includingCurrentValue = distinctSubsets[i - 1][x - elems.at(i).x];
-						}
-						excludingCurrentValue = distinctSubsets[i - 1][x];
-						distinctSubsets[i][x] = includingCurrentValue + excludingCurrentValue;
-					}
-				}
+		if (tgt >= elems[num].x) {
+			if (feasible[num - 1][tgt - elems[num].x]) {
+				p.push_back(elems[num].x);
+				printSubsetsRec(tgt - elems[num].x, num - 1, p, min);
 			}
 		}
-		return distinctSmallestSubsets[elems.size() - 1][tgt];
+		// else {
+			// printSubsetsRec(0, num - 1, p, min);
+		// }
 	}
-
-	///////////////////////////////////////////////////
-	bool** dp;
-	void display(const vector<int>& v){ 
-		for (int i = 0; i < v.size(); ++i) 
-			printf("%d ", v[i]); 
-		printf("\n"); 
-    } 
-
-// A recursive function to print all subsets with the 
-// help of dp[][]. Vector p[] stores current subset. 
-void printSubsetsRec(int i, int sum, vector<int>& p, int min) 
-{ 
-	// If we reached end and sum is non-zero. We print 
-	// p[] only if arr[0] is equal to sun OR dp[0][sum] 
-	// is true. 
-	if(p.size() > min) {
-		 return; 
-	}
-
-	if (i == 0 && sum != 0 && dp[0][sum]) 
-	{ 
-		p.push_back(elems[i].x); 
-		display(p); 
-		return; 
-	} 
-
-	// If sum becomes 0 
-	if (i == 0 && sum == 0) 
-	{ 
-		display(p); 
-		return; 
-	} 
-
-	// If given sum can be achieved after ignoring 
-	// current element. 
-	if (dp[i-1][sum]) 
-	{ 
-		// Create a new vector to store path 
-		vector<int> b = p; 
-		printSubsetsRec( i-1, sum, b, min); 
-	} 
-
-	// If given sum can be achieved after considering 
-	// current element. 
-	if (sum >= elems[i].x && dp[i-1][sum-elems[i].x]) 
-	{ 
-		p.push_back(elems[i].x); 
-		printSubsetsRec( i-1, sum-elems[i].x, p, min); 
-	} 
-} 
-
-// Prints all subsets of arr[0..n-1] with sum 0. 
-void printAllSubsets(int n, int sum, int min) 
-{ 
-	if (n == 0 || sum < 0) 
-	return; 
-
-	// Sum 0 can always be achieved with 0 elements 
-	dp = new bool*[n]; 
-	for (int i=0; i<n; ++i) 
-	{ 
-		dp[i] = new bool[sum + 1]; 
-		dp[i][0] = true; 
-	} 
-
-	// Sum arr[0] can be achieved with single element 
-	if (elems[0].x <= sum) 
-	dp[0][elems[0].x] = true; 
-
-	// Fill rest of the entries in dp[][] 
-	for (int i = 1; i < n; ++i) 
-		for (int j = 0; j < sum + 1; ++j) 
-			dp[i][j] = (elems[i].x <= j) ? dp[i-1][j] || 
-									dp[i-1][j-elems[i].x] 
-									: dp[i - 1][j]; 
-	if (dp[n-1][sum] == false) 
-	{ 
-		printf("There are no subsets with sum %d\n", sum); 
-		return; 
-	} 
-
-	// Now recursively traverse dp[][] to find all 
-	// paths from dp[n-1][sum] 
-	vector<int> p; 
-	printSubsetsRec( n-1, sum, p, min); 
-} 
-	//////////////////////////////////////////////////
 
 	// Function:  solve
 	// Desc:  populates dynamic programming table of
@@ -325,14 +220,13 @@ int main(int argc, char* argv[]) {
 
 	ssi.read_elems(std::cin);
 	if (ssi.solve(target)) {
-		 std::cout << "The target sum of " << target << " is FEASIBLE!";
-		 std::cout << "\n\nNumber of distinct solutions: " << ssi.make_count_table(target);
-
-		 unsigned int smallSize = ssi.smallest_size(target, ssi.elems.size());
-		 std::cout << "\nSize of smallest subset: " << smallSize << "\n";
-		 ssi.printAllSubsets( ssi.elems.size(), target, smallSize); // prints all subsets
-
-		//std::cout << "\nAmount of smallest subsets: " << ssi.make_smallest_count_table(target, smallSize);
+		std::cout << "The target sum of " << target << " is FEASIBLE!";
+		std::cout << "\n\nNumber of distinct solutions: " << ssi.make_count_table(target);
+		unsigned int smallSize = ssi.smallest_size(target, ssi.elems.size());
+		std::cout << "\nSize of smallest subset: " << smallSize;
+		vector<int> p;
+		ssi.printSubsetsRec(target, ssi.elems.size(), p, smallSize);
+		std::cout << "\nAmount of smallest subsets: " << ssi.distinctSmallestSubsetCounter;
 		// std::vector<int> subsets;
 		// ssi.printSubsetsRec(ssi.elems.size(), target, subsets, 9999);
 		// std::cout << "\nHere: " << ssi.printSubsetsRec(ssi.elems.size(), target, subsets, 9999);
